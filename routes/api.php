@@ -18,3 +18,4 @@ Route::middleware('auth:api')->get('/profile', function (Request $request) {
 });
 
 Route::post('users', 'UserApiController@store');
+Route::post('login', 'UserApiController@login');
