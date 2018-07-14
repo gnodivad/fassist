@@ -19,7 +19,8 @@ class UserApiController extends Controller
                 'name'                  => 'required|max:255|unique:users',
                 'email'                 => 'required|email|max:255|unique:users',
                 'password'              => 'required|min:6|max:20|confirmed',
-                'password_confirmation' => 'required|same:password'
+                'password_confirmation' => 'required|same:password',
+                'fcm'                   => 'required',
             ]
         );
 
@@ -31,6 +32,7 @@ class UserApiController extends Controller
             'name'             => $request->input('name'),
             'email'            => $request->input('email'),
             'password'         => bcrypt($request->input('password')),
+            'fcm'              => $request->input('fcm'),
             'token'            => str_random(64),
         ]);
 
