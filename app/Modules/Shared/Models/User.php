@@ -4,6 +4,8 @@ namespace App\Modules\Shared\Models;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passport\HasApiTokens;
+use Ramsey\Uuid\Uuid;
 
 class User extends Authenticatable
 {
@@ -15,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'uuid', 'name', 'email', 'password',
     ];
 
     /**
@@ -24,6 +26,19 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'id', 'password', 'remember_token',
     ];
+
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->uuid = (string) Uuid::uuid4();
+        });
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
 }
