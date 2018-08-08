@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Laravel\Passport\Client;
 use App\Http\Controllers\Controller;
+use Auth;
 use Validator;
 use App\Modules\Shared\Models\User;
-use Laravel\Passport\Client;
-use function GuzzleHttp\json_decode;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
-class UserApiController extends Controller
+class AuthApiController extends Controller
 {
     use AuthenticatesUsers;
 
@@ -20,11 +19,11 @@ class UserApiController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'name'                  => 'required|max:255|unique:users',
-                'email'                 => 'required|email|max:255|unique:users',
-                'password'              => 'required|min:6|max:20|confirmed',
+                'name' => 'required|max:255|unique:users',
+                'email' => 'required|email|max:255|unique:users',
+                'password' => 'required|min:6|max:20|confirmed',
                 'password_confirmation' => 'required|same:password',
-                'fcm'                   => 'required',
+                'fcm' => 'required',
             ]
         );
 
@@ -33,11 +32,11 @@ class UserApiController extends Controller
         }
 
         $user = User::create([
-            'name'             => $request->input('name'),
-            'email'            => $request->input('email'),
-            'password'         => bcrypt($request->input('password')),
-            'fcm'              => $request->input('fcm'),
-            'token'            => str_random(64),
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => bcrypt($request->input('password')),
+            'fcm' => $request->input('fcm'),
+            'token' => str_random(64),
         ]);
 
         $client = Client::where('password_client', 1)->first();
@@ -46,12 +45,12 @@ class UserApiController extends Controller
             'oauth/token',
             'POST',
             [
-                'grant_type'    => 'password',
-                'client_id'     => $client->id,
+                'grant_type' => 'password',
+                'client_id' => $client->id,
                 'client_secret' => $client->secret,
-                'username'      => $request['email'],
-                'password'      => $request['password'],
-                'scope'         => null,
+                'username' => $request['email'],
+                'password' => $request['password'],
+                'scope' => null,
             ]
         ))->getContent();
 
@@ -69,7 +68,7 @@ class UserApiController extends Controller
             [
                 'email' => 'required|email',
                 'password' => 'required',
-                'fcm'   => 'required'
+                'fcm' => 'required'
             ]
         );
 
@@ -109,5 +108,23 @@ class UserApiController extends Controller
         $data['user'] = $user;
 
         return $data;
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->token()->revoke();
+
+        $request->user()->update([
+            'fcm' => null
+        ]);
+
+        return response()->json([
+            'message' => 'Successfully logged out'
+        ]);
+    }
+
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
     }
 }

@@ -13,9 +13,10 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/profile', function (Request $request) {
-    return $request->user();
-});
+Route::post('users', 'AuthApiController@store');
+Route::post('login', 'AuthApiController@login');
 
-Route::post('users', 'UserApiController@store');
-Route::post('login', 'UserApiController@login');
+Route::middleware('auth:api')->group(function () {
+    Route::post('logout', 'AuthApiController@logout');
+    Route::get('profile', 'AuthApiController@user');
+});
