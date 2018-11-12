@@ -10,7 +10,7 @@ use Auth;
 use Validator;
 use App\Modules\Shared\Models\User;
 
-class AuthApiController extends Controller
+class AuthController extends Controller
 {
     use AuthenticatesUsers;
 
@@ -19,10 +19,9 @@ class AuthApiController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'name' => 'required|max:255|unique:users',
                 'email' => 'required|email|max:255|unique:users',
-                'password' => 'required|min:6|max:20|confirmed',
-                'password_confirmation' => 'required|same:password',
+                'password' => 'required|min:6|max:20',
+                'name' => 'required|max:255',
                 'fcm' => 'required',
             ]
         );
@@ -30,16 +29,15 @@ class AuthApiController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors()->all(), 400);
         }
+        
+        $client = Client::where('password_client', 1)->firstOrFail();
 
         $user = User::create([
-            'name' => $request->input('name'),
             'email' => $request->input('email'),
             'password' => bcrypt($request->input('password')),
-            'fcm' => $request->input('fcm'),
-            'token' => str_random(64),
+            'name' => $request->input('name'),
+            'fcm' => $request->input('fcm')
         ]);
-
-        $client = Client::where('password_client', 1)->first();
 
         $response = app()->handle(Request::create(
             'oauth/token',
