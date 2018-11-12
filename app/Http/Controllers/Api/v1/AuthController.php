@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Auth;
 use Validator;
 use App\Modules\Shared\Models\User;
+use App\Modules\Shared\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -54,7 +55,7 @@ class AuthController extends Controller
 
         $data = json_decode($response, true);
 
-        $data['user'] = $user;
+        $data['user'] = new UserResource($user);
 
         return $data;
     }
