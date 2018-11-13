@@ -18,28 +18,21 @@ class AuthController extends Controller
 
     public function store(Request $request) : JsonResponse
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'email' => 'required|email|max:255|unique:users',
-                'password' => 'required|min:6|max:20',
-                'name' => 'required|max:255',
-                'fcm' => 'required',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->all(), 400);
-        }
+        $validatedData = $request->validate([
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|min:6|max:20',
+            'name' => 'required|max:255',
+            'fcm' => 'required'
+        ]);
         
         $user = User::create([
-            'email' => $request->input('email'),
-            'password' => bcrypt($request->input('password')),
-            'name' => $request->input('name'),
-            'fcm' => $request->input('fcm')
+            'email' => $validatedData('email'),
+            'password' => bcrypt($validatedData('password')),
+            'name' => $validatedData('name'),
+            'fcm' => $validatedData('fcm')
         ]);
 
-        $accessToken = $this->requestAccessToken($request['email'], $request['password']);
+        $accessToken = $this->requestAccessToken($validatedData['email'], $validatedData['password']);
 
         $data = array_merge($accessToken, ['user' => new UserResource($user)]);
 
