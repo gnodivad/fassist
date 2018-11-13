@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use App\Http\Controllers\Controller;
 use Auth;
@@ -15,7 +16,7 @@ class AuthController extends Controller
 {
     use AuthenticatesUsers, RetrieveAccessToken;
 
-    public function store(Request $request)
+    public function store(Request $request) : JsonResponse
     {
         $validator = Validator::make(
             $request->all(),
@@ -40,9 +41,9 @@ class AuthController extends Controller
 
         $accessToken = $this->requestAccessToken($request['email'], $request['password']);
 
-        $response = array_merge($accessToken, ['user' => new UserResource($user)]);
+        $data = array_merge($accessToken, ['user' => new UserResource($user)]);
 
-        return $response;
+        return response()->json(['data' => $data], 200)->header('Content-Type', 'application/vnd.api+json');
     }
 
     public function login(Request $request)
