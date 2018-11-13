@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         $data = array_merge($accessToken, ['user' => new UserResource($user)]);
 
-        return response()->json(['data' => $data], 200)->header('Content-Type', 'application/vnd.api+json');
+        return response()->json(['data' => $data], 201)->header('Content-Type', 'application/vnd.api+json');
     }
 
     public function login(Request $request)
