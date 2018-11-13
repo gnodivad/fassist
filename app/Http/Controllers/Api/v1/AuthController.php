@@ -4,16 +4,16 @@ namespace App\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Laravel\Passport\Client;
 use App\Http\Controllers\Controller;
 use Auth;
 use Validator;
 use App\Modules\Shared\Models\User;
 use App\Modules\Shared\Resources\UserResource;
+use App\Modules\Shared\Traits\RetrieveAccessToken;
 
 class AuthController extends Controller
 {
-    use AuthenticatesUsers;
+    use AuthenticatesUsers, RetrieveAccessToken;
 
     public function store(Request $request)
     {
@@ -31,8 +31,6 @@ class AuthController extends Controller
             return response()->json($validator->errors()->all(), 400);
         }
         
-        $client = Client::where('password_client', 1)->firstOrFail();
-
         $user = User::create([
             'email' => $request->input('email'),
             'password' => bcrypt($request->input('password')),
@@ -40,24 +38,11 @@ class AuthController extends Controller
             'fcm' => $request->input('fcm')
         ]);
 
-        $response = app()->handle(Request::create(
-            'oauth/token',
-            'POST',
-            [
-                'grant_type' => 'password',
-                'client_id' => $client->id,
-                'client_secret' => $client->secret,
-                'username' => $request['email'],
-                'password' => $request['password'],
-                'scope' => null,
-            ]
-        ))->getContent();
+        $accessToken = $this->requestAccessToken($request['email'], $request['password']);
 
-        $data = json_decode($response, true);
+        $response = array_merge($accessToken, ['user' => new UserResource($user)]);
 
-        $data['user'] = new UserResource($user);
-
-        return $data;
+        return $response;
     }
 
     public function login(Request $request)
