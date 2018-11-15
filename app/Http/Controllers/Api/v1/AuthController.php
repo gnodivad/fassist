@@ -11,6 +11,7 @@ use Validator;
 use App\Modules\Shared\Models\User;
 use App\Modules\Shared\Resources\UserResource;
 use App\Modules\Shared\Traits\RetrieveAccessToken;
+use App\Exceptions\ApplicationException;
 
 class AuthController extends Controller
 {
@@ -50,7 +51,7 @@ class AuthController extends Controller
         $user = User::where('email', $validatedData['email'])->first();
 
         if (is_null($user) || !$this->attemptLogin($request)) {
-            return response()->json("Email or password is incorrect!", 404);
+            throw new ApplicationException("Email or password is incorrect!");
         }
         
         $accessToken = $this->requestAccessToken($validatedData['email'], $validatedData['password']);
