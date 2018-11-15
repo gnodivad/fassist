@@ -39,53 +39,27 @@ class AuthController extends Controller
         return response()->json(['data' => $data], 201)->header('Content-Type', 'application/vnd.api+json');
     }
 
-    public function login(Request $request)
+    public function login(Request $request) : JsonResponse
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'email' => 'required|email',
-                'password' => 'required',
-                'fcm' => 'required'
-            ]
-        );
+        $validatedData = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+            'fcm' => 'required'
+        ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->all(), 400);
+        $user = User::where('email', $validatedData['email'])->first();
+
+        if (is_null($user) || !$this->attemptLogin($request)) {
+            return response()->json("Email or password is incorrect!", 404);
         }
-
-        $user = User::where('email', $request['email'])->first();
-
-        if (is_null($user)) {
-            return response()->json("User not found!", 404);
-        }
-
-        if (!$this->attemptLogin($request)) {
-            return response()->json("Wrong password!", 404);
-        }
-
-        $client = Client::where('password_client', 1)->first();
-
-        $response = app()->handle(Request::create(
-            'oauth/token',
-            'POST',
-            [
-                'grant_type' => 'password',
-                'client_id' => $client->id,
-                'client_secret' => $client->secret,
-                'username' => $request['email'],
-                'password' => $request['password'],
-                'scope' => null,
-            ]
-        ))->getContent();
-
+        
+        $accessToken = $this->requestAccessToken($validatedData['email'], $validatedData['password']);
+        
         $user->update(['fcm' => $request['fcm']]);
 
-        $data = json_decode($response, true);
+        $data = array_merge($accessToken, ['user' => new UserResource($user)]);
 
-        $data['user'] = $user;
-
-        return $data;
+        return response()->json(['data' => $data], 200)->header('Content-Type', 'application/vnd.api+json');
     }
 
     public function logout(Request $request)
