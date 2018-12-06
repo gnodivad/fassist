@@ -73,9 +73,4 @@ class AuthController extends Controller
 
         return response()->json(null, 204)->header('Content-Type', 'application/vnd.api+json');
     }
-
-    public function user(Request $request)
-    {
-        return response()->json(['data' => ['user' => $request->user()]]);
-    }
 }
