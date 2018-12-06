@@ -71,9 +71,7 @@ class AuthController extends Controller
             'fcm' => null
         ]);
 
-        return response()->json([
-            'message' => 'Successfully logged out'
-        ]);
+        return response()->json(null, 204)->header('Content-Type', 'application/vnd.api+json');
     }
 
     public function user(Request $request)
