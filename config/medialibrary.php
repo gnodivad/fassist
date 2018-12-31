@@ -23,7 +23,7 @@ return [
     /*
      * The fully qualified class name of the media model.
      */
-    'media_model' => Spatie\MediaLibrary\Models\Media::class,
+    'media_model' => App\Modules\Shared\Models\Media::class,
 
     's3' => [
         /*

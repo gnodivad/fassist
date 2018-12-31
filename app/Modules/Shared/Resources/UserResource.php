@@ -18,6 +18,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'name' => $this->name,
             'fcm' => $this->fcm,
+            'avatar_url' => $this->getFirstMedia()->getFullUrl()
         ];
     }
 }
